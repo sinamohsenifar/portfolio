@@ -1,7 +1,9 @@
 from fastapi import logger
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import pathlib
+
+from core.database.sqlite.config import Sqlite
 
 cwd = pathlib.Path(__file__).parent.parent
 config_file = cwd / "config.yaml"
@@ -14,8 +16,8 @@ class Server(BaseModel):
     reload: bool
 
 class Config(BaseModel):
-    """CLI config class."""
     server: Server
+    sqlite: Sqlite
 
 
 

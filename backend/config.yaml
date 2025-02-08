@@ -4,3 +4,19 @@ server:
   log_level: info
   workers: 2
   reload: True
+
+
+sqlite:
+  uri: ""
+  user: ""
+  pass: ""
+  autocommit: false
+  autoflush: false
+postgres:
+  uri: ""
+  user: ""
+  pass: ""
+mysql:
+  uri: ""
+  user: ""
+  pass: ""

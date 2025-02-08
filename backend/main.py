@@ -1,6 +1,6 @@
 import uvicorn
 from src.app import app
-from globals.config import Settings
+from core.config import Settings
 
 server = Settings.server
 if __name__ == "__main__":

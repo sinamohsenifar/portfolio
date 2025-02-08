@@ -1,7 +1,7 @@
 from fastapi import APIRouter , status , Response
 from enum import Enum
 from typing import Optional
-
+from .dependencies import *
 
 # for multiple options in parameters we uses enum
 class ArticleType(str, Enum):
@@ -56,3 +56,9 @@ def all_articles(page=1, writer="all", tag: Optional[str] = None):
         "writer": writer,
         "page": page
     }}
+    
+# crud articles
+@blog_router.post("/create")
+def create_article(article: ArticleModel):
+    return article
+
