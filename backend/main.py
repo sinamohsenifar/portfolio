@@ -1,9 +1,14 @@
 import uvicorn
-from src.app import app
+from api.v1.api import app  # Ensure this imports your FastAPI app
 from core.config import Settings
+import os
+import asyncio
 
-server = Settings.server
-if __name__ == "__main__":
+# Set PYTHONDONTWRITEBYTECODE to disable bytecode generation
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+async def run_server():
+    server = Settings.server
     config = uvicorn.Config(
         "main:app", 
         port=server.port, 
@@ -12,4 +17,20 @@ if __name__ == "__main__":
         reload=server.reload
     )
     server = uvicorn.Server(config)
-    server.run()
+
+    try:
+        # Run the server
+        await server.serve()
+    except asyncio.CancelledError:
+        print("\nServer is shutting down gracefully...")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        # Perform any cleanup here (e.g., closing database connections)
+        print("Cleanup complete. Server stopped.")
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(run_server())
+    except KeyboardInterrupt:
+        print("\nServer interrupted by user. Shutting down...")

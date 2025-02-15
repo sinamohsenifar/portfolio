@@ -3,7 +3,6 @@ import yaml
 from pydantic import BaseModel
 import pathlib
 
-from core.database.sqlite.config import Sqlite
 
 cwd = pathlib.Path(__file__).parent.parent
 config_file = cwd / "config.yaml"
@@ -17,7 +16,6 @@ class Server(BaseModel):
 
 class Config(BaseModel):
     server: Server
-    sqlite: Sqlite
 
 
 
