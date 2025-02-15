@@ -1,7 +1,7 @@
 from fastapi import APIRouter , status , Response
 from enum import Enum
 from typing import Optional
-from .dependencies import *
+from .models import *
 
 # for multiple options in parameters we uses enum
 class ArticleType(str, Enum):
