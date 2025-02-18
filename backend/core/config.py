@@ -1,3 +1,4 @@
+import string
 from fastapi import logger
 import yaml
 from pydantic import BaseModel
@@ -7,6 +8,8 @@ import pathlib
 cwd = pathlib.Path(__file__).parent.parent
 config_file = cwd / "config.yaml"
 
+
+
 class Server(BaseModel):
     port: int
     address: str
@@ -14,10 +17,18 @@ class Server(BaseModel):
     workers: int
     reload: bool
 
+    
+class Sqlite(BaseModel):
+    uri: str
+    username: str
+    password: str
+    autocommit: bool
+    autoflush: bool
+
 class Config(BaseModel):
     server: Server
-
-
+    sqlite: Sqlite
+    
 
 def _load_yml_config(path: pathlib.Path):
     """Classmethod returns YAML config"""

@@ -5,11 +5,10 @@ server:
   workers: 2
   reload: True
 
-
 sqlite:
-  uri: ""
-  user: ""
-  pass: ""
+  uri: "sqlite:///./backend/portfolio.db"
+  username: ""
+  password: ""
   autocommit: false
   autoflush: false
 postgres:
