@@ -1,15 +1,16 @@
-from . import models, schemas
+from db.models.user.hash import Hash
+from db.models.user.models import User
+from db.models.user.schemas import User_Schema
+from sqlalchemy.orm.session import Session
 from db.database import get_db
-from schemas import User
 
-db = get_db()
-user = User
-def create_user():
-    db_user = models.User(username=user.username, email=user.email, hashed_password="fake_hashed_password")
-    db.add(db_user)
+
+def create_user(user: User_Schema, db: Session):
+    new_user = User(username=user.username, email=user.email, hashed_password=Hash.bcrypt(user.password))
+    db.add(new_user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(new_user)
+    return new_user
 
-def get_user(user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+def get_user(user_id: int, db: Session):
+    return db.query(User).filter(User.id == user_id).first()

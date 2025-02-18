@@ -9,7 +9,7 @@ class User(Base):
     hashed_password = Column(String)
 
 # Function to create the table
-def create_table(engine):
+def create_user_table(engine):
     User.metadata.create_all(bind=engine)
     
     
