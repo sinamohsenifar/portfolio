@@ -22,6 +22,8 @@ def get_db():
         
 def create_all_tables():
     from .models.user.models import create_user_table
-
+    from .models.article.models import create_articles_table
+    
     # Call table creation functions for each model
     create_user_table(engine)
+    create_articles_table(engine)
