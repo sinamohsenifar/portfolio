@@ -1,13 +1,13 @@
 import uvicorn
 from api.v1.api import app  # Ensure this imports your FastAPI app
-from db import models , database
+from db import database
 from core.config import Settings
 import os
 import asyncio
 
 # Set PYTHONDONTWRITEBYTECODE to disable bytecode generation
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
-models.Base.metadata.create_all(database.engine)
+database.Base.metadata.create_all(database.engine)
 
 async def run_server():
     server = Settings.server
