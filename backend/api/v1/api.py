@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .admin.router import admin_router
-from .blog.article import router as blog_router
+from .blog.routers.main import blog_router
 from .consoltation.router import consoltation_router
 from .meetings.router import meeting_router
 from .portfolio.router import portfolio_router
