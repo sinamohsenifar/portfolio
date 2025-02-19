@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional , List
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime
 
@@ -53,7 +53,13 @@ class ArticleResponse(ArticleBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    comments: CommentResponse
+    comments: List[CommentResponse] = []
+
+    class Config:
+        from_attributes = True  # Enable ORM mode (previously `orm_mode`)
+
+class ArticleListResponse(BaseModel):
+    articles: List[ArticleBase] = []
 
     class Config:
         from_attributes = True  # Enable ORM mode (previously `orm_mode`)

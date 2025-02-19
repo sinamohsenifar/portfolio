@@ -1,14 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from db.database import get_db
 from db.models.article.models import Article
-from .models import ArticleCreate, ArticleResponse, ArticleUpdate
+from .schemas import ArticleCreate, ArticleResponse, ArticleUpdate , ArticleListResponse
 from db.models.article.models import Comment
 from db.models.article.models import Article
 from db.models.user.models import User
-from .models import CommentCreate, CommentUpdate, CommentResponse
+from .schemas import CommentCreate, CommentUpdate, CommentResponse
 
 router = APIRouter(prefix="/articles", tags=["articles"])
+
+
+@router.get("/all")
+def all_articles(db: Session = Depends(get_db), response_model= ArticleListResponse ):
+    articles = db.query(Article).all()
+    if not articles:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no Articles")
+    return {"articles": articles}
 
 @router.post("/", response_model=ArticleResponse)
 def create_article(article: ArticleCreate, db: Session = Depends(get_db)):
@@ -20,7 +28,7 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_db)):
 
 @router.get("/{article_id}", response_model=ArticleResponse)
 def read_article(article_id: int, db: Session = Depends(get_db)):
-    db_article = db.query(Article).filter(Article.id == article_id).first()
+    db_article = db.query(Article).options(joinedload(Article.comments)).filter(Article.id == article_id).first()
     if not db_article:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
     return db_article
