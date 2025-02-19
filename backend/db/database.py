@@ -19,10 +19,11 @@ def get_db():
         yield db
     finally:
         db.close()
-        
+
 def create_all_tables():
     from .models.user.models import create_user_table
-    from .models.article.models import create_articles_table , create_comments_table
+    from .models.article.model import create_articles_table
+    from .models.comment.model import create_comments_table
     
     # Call table creation functions for each model
     create_user_table(engine)
