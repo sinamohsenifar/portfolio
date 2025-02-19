@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends , status
+from db.models.user.crud import create_user, get_user, get_users , update_user , delete_user
 from db.models.user.models import User
 from .schemas import UserSchema, UserVerifySchema
 from db.database import get_db
@@ -7,39 +8,25 @@ from sqlalchemy.orm.session import Session
 
 users_router = APIRouter()
 
-@users_router.get("/")
-def users_page():
-    return {"message": "wellcome to users page"}
+@users_router.get("/{user_id}")
+def gets_user(user_id: int, db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
+    return get_user(user_id,db)
 
 @users_router.post("/all")
-def all_users(db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
-    users = db.query(User).all()
-    return {"users": users}
-
-
+def gets_users(db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
+    return get_users(db)
 
 @users_router.post("/create")
-def create_user(user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
-    
-    # .filter(User.email == user.email).first()
-    check_username = db.query(User).filter(User.username == user.username).first()
-    check_email = db.query(User).filter(User.email == user.email).first()
-    if check_username:
-        return {"status": "duplicate username"}
-    elif check_email:
-        return {"status": "duplicate email"}
-    else:
-        new_user = User(username=user.username, email=user.email, hashed_password = User.hash_password(user.password))
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        return {"data": {"username": new_user.username , 
-                         "email": new_user.email,
-                         "status": "created"
-                         }
-                }
-    
-    
+def creates_user(user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+    return create_user(user,db)
+
+@users_router.put("/{user_id}")
+def updates_user(user_id: int,user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+    return update_user(user_id,user,db)
+
+@users_router.delete("/{user_id}")
+def deletes_user(user_id: int,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+    return delete_user(user_id,db)
 
 @users_router.post("/verify")
 def verify_password(user: UserVerifySchema,db: Session = Depends(get_db), status_code=status.HTTP_202_ACCEPTED):
