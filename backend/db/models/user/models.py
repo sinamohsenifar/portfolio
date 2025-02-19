@@ -1,9 +1,7 @@
-from email.policy import default
-from sqlalchemy import Column, Integer, String , Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+from db.database import Base
 import bcrypt
-
-Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
@@ -11,6 +9,12 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+
+    # Use a string-based reference for the relationship to avoid circular imports
+    articles = relationship("Article", back_populates="author")
+
+    # Relationship to the Comment model
+    comments = relationship("Comment", back_populates="user")
     
     @staticmethod
     def hash_password(password: str) -> str:
@@ -26,5 +30,3 @@ class User(Base):
 # Function to create the table
 def create_user_table(engine):
     User.metadata.create_all(bind=engine)
-    
-
