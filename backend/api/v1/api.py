@@ -1,4 +1,10 @@
-from fastapi import FastAPI
+from datetime import time
+from fastapi import FastAPI, Request
+from starlette.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+import time
+
 from .admin.router import admin_router
 from .auth.router import auth_router
 from .blog.routers.blog import blog_router
@@ -6,8 +12,9 @@ from .consoltation.router import consoltation_router
 from .meetings.router import meeting_router
 from .portfolio.router import portfolio_router
 from .users.router import users_router
-from starlette.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+from .file.router import file_router
+from .tasks.router import tasks_router
+
 
 # Example startup and shutdown logic
 async def startup():
@@ -33,6 +40,10 @@ app.include_router(consoltation_router, prefix="/consoltation", tags=["consoltat
 app.include_router(meeting_router, prefix="/meeting", tags=["meeting"])
 app.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])
 app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(file_router,prefix="/static",tags=["file"])
+app.include_router(tasks_router,prefix="/tasks",tags=["tssks"])
+
+
 
 app.add_middleware(CORSMiddleware,
                     allow_origins=["*"],
@@ -43,3 +54,18 @@ app.add_middleware(CORSMiddleware,
                     expose_headers= (),
                     max_age= 600
                 )
+
+
+app.mount("/files", StaticFiles(directory="/Users/sina/Documents/github/portfolio/backend/files"), name="files")
+
+
+
+
+
+@app.middleware("http")
+async def add_durations(request: Request, call_next):
+    start_time  = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    response.headers["duration"] = str(duration)
+    return response
