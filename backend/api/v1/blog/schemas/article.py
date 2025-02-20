@@ -10,10 +10,9 @@ class ArticleBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100, description="The title of the article")
     content: str = Field(..., min_length=10, description="The content of the article")
     published: bool = Field(default=True, description="Whether the article is published")
-    author_id: int = Field(..., gt=0, description="The ID of the author")
 
 class ArticleCreate(ArticleBase):
-    pass  # No additional fields for creation
+    author_id: int = Field(..., gt=0, description="The ID of the author")
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100, description="The title of the article")

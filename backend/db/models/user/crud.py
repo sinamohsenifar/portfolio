@@ -13,7 +13,7 @@ def get_user(user_id,db):
 
 def get_users(db):
     users = db.query(User).all()
-    return {"users": users}
+    return users
 
 def create_user(user,db):
     check_username = db.query(User).filter(User.username == user.username).first()
@@ -65,3 +65,13 @@ def delete_user(user_id,db):
         db.commit()
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User not found")
+
+
+def get_user(username,db):
+    db_user = db.query(User).filter(User.username == username).first()
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User not found")
+    return db_user

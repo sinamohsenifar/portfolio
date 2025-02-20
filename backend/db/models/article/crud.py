@@ -19,11 +19,18 @@ def get_article(article_id: int, db: Session):
     return db_article
 
 def create_article(article: ArticleCreate, db: Session):
-    db_article = Article(**article.model_dump())
-    db.add(db_article)
+    new_article = Article(
+        title=article.title,
+        content=article.content,
+        author_id=article.author_id  # Ensure author_id is provided
+    )
+    check_title = db.query(Article).filter(Article.title == new_article.title).first()
+    if check_title:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Article title exists")
+    db.add(new_article)
     db.commit()
-    db.refresh(db_article)
-    return db_article
+    db.refresh(new_article)
+    return new_article
 
 def update_article(article_id: int,article: ArticleUpdate , db: Session):
     db_article = db.query(Article).filter(Article.id == article_id).first()
