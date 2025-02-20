@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends , status , HTTPException , Cookie , Form
 from db.models.user.crud import create_user, get_user, get_users, update_email , update_user , delete_user
 from db.models.user.models import User
-from .schemas import UserEmailSchema, UserSchema, UserVerifySchema
+from .schemas import UserEmailSchema, UserSchema, UserVerifySchema ,UserCreateSchema
 from db.database import get_db
 from sqlalchemy.orm.session import Session
 from fastapi.responses import Response , PlainTextResponse , HTMLResponse , FileResponse , JSONResponse
@@ -64,11 +64,11 @@ def gets_users(db: Session = Depends(get_db)):
     return Response(content=csv_content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=users.csv"})
 
 @users_router.post("/create")
-def creates_user(user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+def creates_user(user: UserCreateSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
     return create_user(user,db)
 
 @users_router.put("/{user_id}/update/user")
-def updates_user(user_id: int,user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+def updates_user(user_id: int,user: UserCreateSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
     return update_user(user_id,user,db)
 
 @users_router.put("/{user_id}/update/email")

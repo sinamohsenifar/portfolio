@@ -70,8 +70,6 @@ def delete_user(user_id,db):
 def get_user(username,db):
     db_user = db.query(User).filter(User.username == username).first()
     if db_user:
-        db.delete(db_user)
-        db.commit()
+        return db_user
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User not found")
-    return db_user

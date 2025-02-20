@@ -14,11 +14,17 @@ class ArticleBase(BaseModel):
 class ArticleCreate(ArticleBase):
     author_id: int = Field(..., gt=0, description="The ID of the author")
 
+    class Config:
+        from_attributes = True
+        
 class ArticleUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100, description="The title of the article")
     content: Optional[str] = Field(None, min_length=10, description="The content of the article")
     published: Optional[bool] = Field(None, description="Whether the article is published")
 
+    class Config:
+        from_attributes = True
+        
 class ArticleResponse(ArticleBase):
     id: int
     created_at: datetime

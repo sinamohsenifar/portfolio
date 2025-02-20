@@ -18,9 +18,16 @@ def gets_article(article_id: int,db : Session = Depends(get_db),):
     return get_article(article_id,db)
 
 @articles_router.post("/")
-def creates_article(article:ArticleCreate,db : Session = Depends(get_db), current_user: UserSchema = Depends(get_current_user)):
+def creates_article(article:ArticleBase,db : Session = Depends(get_db), current_user: UserSchema = Depends(get_current_user)):
+    new_article = ArticleCreate(
+        content=article.content,
+        title=article.title,
+        published=article.published,
+        author_id=current_user.id
+    )
+    new_article = create_article(new_article,db)
     return {
-        "article": create_article(article,db),
+        "article": new_article,
         "current_user": current_user.username
         }
 
