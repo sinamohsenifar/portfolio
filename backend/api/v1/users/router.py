@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends , status
-from db.models.user.crud import create_user, get_user, get_users , update_user , delete_user
+from fastapi import APIRouter, Depends , status , Response , HTTPException
+from db.models.user.crud import create_user, get_user, get_users, update_email , update_user , delete_user
 from db.models.user.models import User
-from .schemas import UserSchema, UserVerifySchema
+from .schemas import UserEmailSchema, UserSchema, UserVerifySchema
 from db.database import get_db
 from sqlalchemy.orm.session import Session
 
@@ -20,9 +20,15 @@ def gets_users(db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
 def creates_user(user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
     return create_user(user,db)
 
-@users_router.put("/{user_id}")
+@users_router.put("/{user_id}/update/user")
 def updates_user(user_id: int,user: UserSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
     return update_user(user_id,user,db)
+
+@users_router.put("/{user_id}/update/email")
+def updates_user_email(user_id: int,user: UserEmailSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
+    return update_email(user_id,user,db)
+
+
 
 @users_router.delete("/{user_id}")
 def deletes_user(user_id: int,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
@@ -34,8 +40,8 @@ def verify_password(user: UserVerifySchema,db: Session = Depends(get_db), status
     if user_found:        
         is_valid = user_found.verify_password(user.password)
         if is_valid:
-            return {"status": "correct password"}
+            return {"detail": "correct password"}
         else: 
-            return {"status": "wrong password"}
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="wrong password")
     else:
-        return {"status": "user not found"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
