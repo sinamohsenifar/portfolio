@@ -1,12 +1,9 @@
 import uvicorn
 from routers.api import app  # Ensure this imports your FastAPI app
 from db.database import create_all_tables
-from core.config import Settings
-import os
+from config.config import Settings
 import asyncio
 
-# Set PYTHONDONTWRITEBYTECODE to disable bytecode generation
-os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 create_all_tables()
 
 async def run_server():

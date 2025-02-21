@@ -58,7 +58,7 @@ app.add_middleware(CORSMiddleware,
                 )
 
 
-app.mount("/files", StaticFiles(directory="/Users/sina/Documents/github/portfolio/backend/files"), name="files")
+app.mount("/statics/files", StaticFiles(directory="/Users/sina/Documents/github/portfolio/backend/statics/files"), name="files")
 
 
 

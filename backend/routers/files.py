@@ -7,7 +7,7 @@ file_router = APIRouter()
 
 @file_router.post("/upload")
 async def file_uploader(file : UploadFile  = File(...)):
-    path = f"backend/files/{file.filename}"
+    path = f"backend/statics/files/{file.filename}"
     with open(path, 'w+b') as buffer:
         shutil.copyfileobj(file.file,buffer)
         
@@ -20,5 +20,5 @@ async def file_uploader(file : UploadFile  = File(...)):
 
 @file_router.get("/download/{name}", response_class=FileResponse)
 async def file_downloader(name: str):
-    path = f"files/{name}"
+    path = f"statics/files/{name}"
     return path

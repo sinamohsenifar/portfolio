@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from core.config import Settings
+from config.config import Settings
 
 # Create the database engine
 engine = create_engine(Settings.sqlite.uri)
