@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 file_router = APIRouter()
 
 @file_router.post("/upload")
-def file_uploader(file : UploadFile  = File(...)):
+async def file_uploader(file : UploadFile  = File(...)):
     path = f"backend/files/{file.filename}"
     with open(path, 'w+b') as buffer:
         shutil.copyfileobj(file.file,buffer)
@@ -19,6 +19,6 @@ def file_uploader(file : UploadFile  = File(...)):
     }
 
 @file_router.get("/download/{name}", response_class=FileResponse)
-def file_downloader(name: str):
+async def file_downloader(name: str):
     path = f"files/{name}"
     return path

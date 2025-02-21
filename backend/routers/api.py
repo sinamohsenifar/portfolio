@@ -5,15 +5,16 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import time
 
-from .admin.router import admin_router
-from .auth.router import auth_router
-from .blog.routers.blog import blog_router
-from .consoltation.router import consoltation_router
-from .meetings.router import meeting_router
-from .portfolio.router import portfolio_router
-from .users.router import users_router
-from .file.router import file_router
-from .tasks.router import tasks_router
+from .admin import admin_router
+from .auth import auth_router
+from .article import articles_router
+from .comment import comments_router
+from .consolation import consoltation_router
+from .meeting import meeting_router
+from .portfolio import portfolio_router
+from .users import users_router
+from .files import file_router
+from .tasks import tasks_router
 
 
 # Example startup and shutdown logic
@@ -35,7 +36,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(blog_router , prefix="/blog", tags=["blog"])
+app.include_router(articles_router , prefix="/article", tags=["article"])
+app.include_router(comments_router , prefix="/comment", tags=["comment"])
 app.include_router(consoltation_router, prefix="/consoltation", tags=["consoltation"])
 app.include_router(meeting_router, prefix="/meeting", tags=["meeting"])
 app.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])

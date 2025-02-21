@@ -1,5 +1,5 @@
 import uvicorn
-from api.v1.api import app  # Ensure this imports your FastAPI app
+from routers.api import app  # Ensure this imports your FastAPI app
 from db.database import create_all_tables
 from core.config import Settings
 import os

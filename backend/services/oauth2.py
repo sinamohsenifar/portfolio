@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from db.models.user.crud import get_user
-from db.models.user.models import User
+from models.user import get_user
+from models.user import User
 from db.database import get_db
 
 
