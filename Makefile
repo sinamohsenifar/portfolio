@@ -9,8 +9,10 @@ start: start-backend #start-frontend
 # Start backend with file watching
 start-backend:
 	@echo "Starting backend..."
-	@source $(VENV) && watchmedo auto-restart --directory=$(BACKEND_DIR) --pattern="*.py" --recursive -- python3 $(BACKEND_DIR)/main.py || (echo "Backend crashed" && exit 1)
-
+	@export PYTHONDONTWRITEBYTECODE=1 && \
+	source $(VENV) && \
+	watchmedo auto-restart --directory=$(BACKEND_DIR) --pattern="*.py" --recursive -- python3 $(BACKEND_DIR)/main.py || (echo "Backend crashed" && exit 1)
+	
 # Start frontend with file watching
 # start-frontend:
 #     @echo "Starting frontend..."
