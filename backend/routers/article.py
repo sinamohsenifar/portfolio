@@ -31,7 +31,7 @@ async def creates_article(article:ArticleBase,db : Session = Depends(get_db), cu
         "current_user": current_user.username
         }
 
-@articles_router.put("/{article_id}", response_model=ArticleResponse)
+@articles_router.patch("/{article_id}", response_model=ArticleResponse)
 async def updates_article(article_id: int, article: ArticleUpdate,db : Session = Depends(get_db),):
     return update_article(article_id , article,db)
 
