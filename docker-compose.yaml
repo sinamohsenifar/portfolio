@@ -1,0 +1,45 @@
+
+services:
+  # PostgreSQL Database
+  postgres:
+    container_name: postgres
+    image: postgres:15.12-alpine3.20
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+      POSTGRES_DB: portfolio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  # FastAPI Backend
+  backend:
+    container_name: backend
+    build: 
+      context: backend
+      dockerfile: dockerfile  # Name of the Dockerfile (optional if it's named "Dockerfile")
+      args:
+        - DEVELOPER=CENA
+      labels:
+        - "com.cena.portfolio=Mary-Site"
+      tags:  # Define the image name and tag
+        - "portfolio-backend:0.0.1"
+    volumes:
+      - ./backend/src:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+# Volumes and Networks
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
