@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String , ForeignKey
 from sqlalchemy.orm import relationship
 from db.database import Base
 import bcrypt
@@ -11,10 +11,13 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    
     # Use a string-based reference for the relationship to avoid circular imports
     articles = relationship("Article", back_populates="author")
-
+    
+    role = relationship("Role", back_populates="users")
+    
     # Relationship to the Comment model
     comments = relationship("Comment", back_populates="user")
     

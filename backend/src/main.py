@@ -1,5 +1,5 @@
 import uvicorn
-from routers.api import app  # Ensure this imports your FastAPI app
+from routers.api import app
 from db.database import create_all_tables
 from config.config import Settings
 import asyncio

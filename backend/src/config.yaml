@@ -7,15 +7,9 @@ server:
 
 sqlite:
   uri: "sqlite:///./backend/portfolio.db"
-  username: ""
-  password: ""
   autocommit: false
   autoflush: false
 postgres:
-  uri: ""
-  user: ""
-  pass: ""
+  uri: "postgresql://portfolio:portfolio@postgres:5432/portfolio"
 mysql:
   uri: ""
-  user: ""
-  pass: ""

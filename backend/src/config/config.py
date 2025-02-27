@@ -20,14 +20,16 @@ class Server(BaseModel):
     
 class Sqlite(BaseModel):
     uri: str
-    username: str
-    password: str
     autocommit: bool
     autoflush: bool
+
+class Postgres(BaseModel):
+    uri: str
 
 class Config(BaseModel):
     server: Server
     sqlite: Sqlite
+    postgres: Postgres
     
 
 def _load_yml_config(path: pathlib.Path):

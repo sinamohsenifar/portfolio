@@ -14,7 +14,7 @@ async def all_articles(db : Session = Depends(get_db),response_model= List(Artic
     return get_articles(db)
 
 @articles_router.get("/{article_id}", response_model=ArticleResponse)
-async def gets_article(article_id: int,db : Session = Depends(get_db),):
+async def gets_article(article_id: int,db : Session = Depends(get_db)):
     return get_article(article_id,db)
 
 @articles_router.post("/")

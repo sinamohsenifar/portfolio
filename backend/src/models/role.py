@@ -1,23 +1,42 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String 
 from sqlalchemy.orm import relationship
-from db.database import Base
-import bcrypt
-from fastapi import HTTPException , status
+from db.database import Base , get_db
+from sqlalchemy.orm import Session
+from fastapi import HTTPException , status , Depends 
 
 class Role(Base):
     __tablename__ = "roles"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-
     # Use a string-based reference for the relationship to avoid circular imports
     users = relationship("User", back_populates="user")
 
+    @staticmethod
+    def create_default_roles():
+        db : Session = Depends(get_db)
+        """
+        Create default roles (e.g., admin and user) in the database.
+        """
+        default_roles = [
+            {"name": "admin"},
+            {"name": "user"}
+        ]
+
+        for role_data in default_roles:
+            # Check if the role already exists
+            existing_role = db.query(Role).filter(Role.name == role_data["name"]).first()
+            if not existing_role:
+                # Create the role if it doesn't exist
+                new_role = Role(**role_data)
+                db.add(new_role)
+                db.commit()
+                db.refresh(new_role)
 
 
 # Function to create the table
 def create_role_table(engine):
     Role.metadata.create_all(bind=engine)
-
+    Role.create_default_roles()
 
 
 def get_role(role_id,db):
