@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String , ForeignKey
 from sqlalchemy.orm import relationship
 from db.database import Base
 import bcrypt
-from fastapi import APIRouter, Depends , status ,HTTPException
-from schemas.users import UserEmailSchema, UserSchema, UserVerifySchema
+from fastapi import status ,HTTPException
+from schemas.users import UserEmailSchema
 
 class User(Base):
     __tablename__ = "users"

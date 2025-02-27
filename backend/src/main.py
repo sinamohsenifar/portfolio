@@ -1,15 +1,18 @@
 import uvicorn
-from routers.api import app
-from db.database import create_all_tables
+from api import app
 from config.config import Settings
 import asyncio
+import logging
 
-create_all_tables()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def run_server():
     server = Settings.server
     config = uvicorn.Config(
-        "main:app", 
+        "main:app",
+        host=server.host,
         port=server.port, 
         log_level=server.log_level,
         workers=server.workers,
@@ -18,18 +21,18 @@ async def run_server():
     server = uvicorn.Server(config)
 
     try:
-        # Run the server
+        logger.info("Starting server...")
         await server.serve()
     except asyncio.CancelledError:
-        print("\nServer is shutting down gracefully...")
+        logger.info("\nServer is shutting down gracefully...")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
     finally:
         # Perform any cleanup here (e.g., closing database connections)
-        print("Cleanup complete. Server stopped.")
+        logger.info("Cleanup complete. Server stopped.")
 
 if __name__ == "__main__":
     try:
         asyncio.run(run_server())
     except KeyboardInterrupt:
-        print("\nServer interrupted by user. Shutting down...")
+        logger.info("\nServer interrupted by user. Shutting down...")

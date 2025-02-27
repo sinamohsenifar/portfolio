@@ -1,5 +1,6 @@
 fastapi[standard]
 uvicorn[standard]
+
 SQLAlchemy==2.0.38
 asyncpg==0.30.0
 psycopg2-binary==2.9.10
@@ -10,3 +11,4 @@ passlib==1.7.4
 alembic==1.14.1
 PyYAML==6.0.2
 watchdog==6.0.0
+greenlet

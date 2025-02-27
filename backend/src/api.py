@@ -4,33 +4,41 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import time
+from routers.admin import admin_router
+from routers.auth import auth_router
+from routers.article import articles_router
+from routers.comment import comments_router
+from routers.consolation import consoltation_router
+from routers.meeting import meeting_router
+from routers.portfolio import portfolio_router
+from routers.users import users_router
+from routers.files import file_router
+from routers.tasks import tasks_router
 
-from .admin import admin_router
-from .auth import auth_router
-from .article import articles_router
-from .comment import comments_router
-from .consolation import consoltation_router
-from .meeting import meeting_router
-from .portfolio import portfolio_router
-from .users import users_router
-from .files import file_router
-from .tasks import tasks_router
 
-
-# Example startup and shutdown logic
-async def startup():
-    print("Starting up...")
-    # Perform startup tasks (e.g., connect to database)
-
-async def shutdown():
-    print("Shutting down...")
-    # Perform cleanup tasks (e.g., close database connections)
+from fastapi import Depends
+from db.database import get_db
+from models.role import create_default_roles
+from db.database import create_all_tables
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await startup()
     yield
     await shutdown()
+
+
+# Example startup and shutdown logic
+async def startup():
+    print("Starting up...")
+    await create_all_tables()  # Create tables asynchronously
+    async for db in get_db():  # Get the async session
+        await create_default_roles(db)  # Create default roles asynchronously
+    print("App Started...")
+
+async def shutdown():
+    print("Shutting down...")
+    # Perform cleanup tasks (e.g., close database connections)
 
 
 app = FastAPI(lifespan=lifespan)
@@ -58,7 +66,13 @@ app.add_middleware(CORSMiddleware,
                 )
 
 
-app.mount("/statics/files", StaticFiles(directory="/app/statics/files"), name="files")
+import os
+
+# Get the absolute path of the current script
+current_file_path = os.path.abspath(__file__)
+current_directory = os.path.dirname(current_file_path)
+
+app.mount("/statics/files", StaticFiles(directory=f"{current_directory}/statics/files"), name="files")
 
 
 

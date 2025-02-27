@@ -11,6 +11,7 @@ config_file = cwd / "config.yaml"
 
 
 class Server(BaseModel):
+    host: str
     port: int
     address: str
     log_level: str

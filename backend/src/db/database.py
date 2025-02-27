@@ -1,36 +1,33 @@
-from fastapi import Depends
-from sqlalchemy import create_engine
-import sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker , Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import MetaData
 from config.config import Settings
 
-# Create the database engine
-engine = create_engine(Settings.postgres.uri)
+# Create the async database engine
+engine = create_async_engine(Settings.postgres.uri, echo=True)
 
-metadata = sqlalchemy.MetaData()
-
-# Session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Metadata for database schema
+metadata = MetaData()
 
 # Base class for models
 Base = declarative_base()
 
-# Dependency to get a database session
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Async session factory
+AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
-def create_all_tables():
-    from models.user import create_user_table
-    from models.article import create_articles_table
-    from models.comment import create_comments_table
-    from models.role import create_role_table
-    # Call table creation functions for each model
-    create_user_table(engine)
-    create_articles_table(engine)
-    create_comments_table(engine)
-    create_role_table(engine)
+# Dependency to get an async database session
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+# Function to create all tables asynchronously
+async def create_all_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
