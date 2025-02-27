@@ -27,8 +27,9 @@ def create_all_tables():
     from models.user import create_user_table
     from models.article import create_articles_table
     from models.comment import create_comments_table
-    
+    from models.role import create_role_table
     # Call table creation functions for each model
     create_user_table(engine)
     create_articles_table(engine)
     create_comments_table(engine)
+    create_role_table(engine)

@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from db.database import Base
 import bcrypt
-from ctypes.wintypes import HACCEL
 from fastapi import APIRouter, Depends , status ,HTTPException
 from schemas.users import UserEmailSchema, UserSchema, UserVerifySchema
 
