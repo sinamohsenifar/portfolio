@@ -15,10 +15,9 @@ from routers.users import users_router
 from routers.files import file_router
 from routers.tasks import tasks_router
 
-
-from fastapi import Depends
 from db.database import get_db
 from models.role import create_default_roles
+from models.user import create_admin_users
 from db.database import create_all_tables
 
 @asynccontextmanager
@@ -34,6 +33,7 @@ async def startup():
     await create_all_tables()  # Create tables asynchronously
     async for db in get_db():  # Get the async session
         await create_default_roles(db)  # Create default roles asynchronously
+        await create_admin_users(db)
     print("App Started...")
 
 async def shutdown():

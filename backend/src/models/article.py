@@ -2,12 +2,9 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from db.database import Base
-
-from fastapi import  Depends, HTTPException, status 
-from schemas.article import ArticleCreate, ArticleUpdate
-from db.database import get_db
-from sqlalchemy.orm import Session , joinedload
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from fastapi import HTTPException, status
 
 class Article(Base):
     __tablename__ = "articles"
@@ -25,56 +22,68 @@ class Article(Base):
     # Relationship to the Comment model
     comments = relationship("Comment", back_populates="article")
 
-# Function to create the table
-def create_articles_table(engine):
-    Article.metadata.create_all(bind=engine)
     
 
 
 
 
 
-def get_articles(db):
-    articles = db.query(Article).all()
+async def get_articles(db: AsyncSession):
+    result = await db.execute(select(Article))
+    articles = result.scalars().all()
     if not articles:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no Articles")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There are no articles")
     return articles
 
-def get_article(article_id: int, db: Session):
-    db_article = db.query(Article).options(joinedload(Article.comments)).filter(Article.id == article_id).first()
+async def get_article(article_id: int, db: AsyncSession):
+    result = await db.execute(
+        select(Article)
+        .options(joinedload(Article.comments))
+        .filter(Article.id == article_id)
+    )
+    db_article = result.scalar_one_or_none()
     if not db_article:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
     return db_article
 
-def create_article(article: ArticleCreate, db: Session):
+
+async def create_article(article, db: AsyncSession):
+    # Check if the title already exists
+    result = await db.execute(select(Article).filter(Article.title == article.title))
+    check_title = result.scalar_one_or_none()
+    if check_title:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Article title exists")
+
+    # Create the new article
     new_article = Article(
         title=article.title,
         content=article.content,
-        author_id=article.author_id  # Ensure author_id is provided
+        author_id=article.author_id
     )
-    check_title = db.query(Article).filter(Article.title == new_article.title).first()
-    if check_title:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Article title exists")
     db.add(new_article)
-    db.commit()
-    db.refresh(new_article)
+    await db.commit()
+    await db.refresh(new_article)
     return new_article
 
-def update_article(article_id: int,article: ArticleUpdate , db: Session):
-    db_article = db.query(Article).filter(Article.id == article_id).first()
+async def update_article(article_id: int, article, db: AsyncSession):
+    result = await db.execute(select(Article).filter(Article.id == article_id))
+    db_article = result.scalar_one_or_none()
     if not db_article:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
-    for key, value in db_article.model_dump(exclude_unset=True).items():
-        setattr(db_article, key, value)
-    db.commit()
-    db.refresh(db_article)
 
+    # Update the article fields
+    for key, value in article.model_dump(exclude_unset=True).items():
+        setattr(db_article, key, value)
+    await db.commit()
+    await db.refresh(db_article)
     return db_article
 
-def delete_article(article_id: int, db: Session):
-    db_article = db.query(Article).filter(Article.id == article_id).first()
+async def delete_article(article_id: int, db: AsyncSession):
+    result = await db.execute(select(Article).filter(Article.id == article_id))
+    db_article = result.scalar_one_or_none()
     if not db_article:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
-    db.delete(db_article)
-    db.commit()
-    return ""
+
+    await db.delete(db_article)
+    await db.commit()
+    return {"status": "Article deleted"}

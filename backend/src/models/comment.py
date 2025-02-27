@@ -3,10 +3,10 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from db.database import Base
 from models.article import Article
-from sqlalchemy.orm import Session , joinedload
 from models.user import User
-from fastapi import  Depends, HTTPException, status , APIRouter
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from fastapi import HTTPException, status
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -23,16 +23,14 @@ class Comment(Base):
     article_id = Column(Integer, ForeignKey("articles.id"), nullable=False)
     article = relationship("Article", back_populates="comments")
 
-# Function to create the table
-def create_comments_table(engine):
-    Comment.metadata.create_all(bind=engine)
     
     
 
 
-def create_comment(article_id,comment,db):
+async def create_comment(article_id: int, comment, db: AsyncSession):
     # Check if the article exists
-    db_article = db.query(Article).filter(Article.id == article_id).first()
+    result = await db.execute(select(Article).filter(Article.id == article_id))
+    db_article = result.scalar_one_or_none()
     if not db_article:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -40,7 +38,8 @@ def create_comment(article_id,comment,db):
         )
 
     # Check if the user exists
-    db_user = db.query(User).filter(User.id == comment.user_id).first()
+    result = await db.execute(select(User).filter(User.id == comment.user_id))
+    db_user = result.scalar_one_or_none()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -54,13 +53,15 @@ def create_comment(article_id,comment,db):
         article_id=article_id
     )
     db.add(db_comment)
-    db.commit()
-    db.refresh(db_comment)
+    await db.commit()
+    await db.refresh(db_comment)
     return db_comment
 
-def update_comment(comment_id,comment,db):
-    # Check if the comment exists and belongs to the specified article
-    db_comment = db.query(Comment).filter(Comment.id == comment_id).first()
+
+async def update_comment(comment_id: int, comment, db: AsyncSession):
+    # Check if the comment exists
+    result = await db.execute(select(Comment).filter(Comment.id == comment_id))
+    db_comment = result.scalar_one_or_none()
     if not db_comment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -70,17 +71,19 @@ def update_comment(comment_id,comment,db):
     # Update the comment
     for key, value in comment.model_dump(exclude_unset=True).items():
         setattr(db_comment, key, value)
-    db.commit()
-    db.refresh(db_comment)
+    await db.commit()
+    await db.refresh(db_comment)
     return db_comment
 
-def delete_comment(comment_id,db):
-    db_comment = db.query(Comment).filter(Comment.id == comment_id).first()
+async def delete_comment(comment_id: int, db: AsyncSession):
+    result = await db.execute(select(Comment).filter(Comment.id == comment_id))
+    db_comment = result.scalar_one_or_none()
     if not db_comment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Comment not found"
         )
-    db.delete(db_comment)
-    db.commit()
+
+    await db.delete(db_comment)
+    await db.commit()
     return True

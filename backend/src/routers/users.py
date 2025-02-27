@@ -1,94 +1,121 @@
-from typing import Optional
-from fastapi import APIRouter, Depends , status , HTTPException , Cookie , Form
-from models.user import create_user, get_user, get_users, update_email , update_user , delete_user
-from models.user import User
-from schemas.users import UserEmailSchema, UserSchema, UserVerifySchema ,UserCreateSchema
+from fastapi import APIRouter, Depends, status, HTTPException, Cookie, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
-from sqlalchemy.orm.session import Session
-from fastapi.responses import Response , PlainTextResponse , HTMLResponse , FileResponse , JSONResponse
+from models.user import create_user, get_user, get_users, update_email, update_user, delete_user, get_user_by_username
+from schemas.users import UserCreate, UserResponse, UserUpdate, UserEmailUpdate, UserVerifyPassword
+from typing import Optional
 import csv
 from io import StringIO
 
-users_router = APIRouter()
+users_router = APIRouter(prefix="/users", tags=["users"])
 
-@users_router.get("/{user_id}")
-async def gets_user(user_id: int,user_cookie : Optional[str] = Cookie(None), db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
-    print(user_cookie)
-    user = get_user(user_id,db)
+# Get a user by ID
+@users_router.get("/{user_id}", response_model=UserResponse)
+async def get_user_by_id(
+    user_id: int,
+    user_cookie: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db)
+):
+    print(f"User cookie: {user_cookie}")  # For debugging
+    user = await get_user(user_id, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
-    # Serialize the User object to a dictionary
-    user_data = {
+    # Convert roles to a list of role names
+    roles = [role.name for role in user.roles]
+    
+    # Create the response
+    response_data = {
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        # Add other fields as needed
+        "roles": roles
     }
     
-    # Create a JSONResponse with the serialized user data
-    response = JSONResponse(content=user_data)
     # Set a cookie with the user_id
+    response = Response(content=response_data, media_type="application/json")
     response.set_cookie(key="user_cookie", value=str(user_id))
     return response
 
-@users_router.post("/all")
-async def gets_users(db: Session = Depends(get_db), status_code = status.HTTP_200_OK):
-    return get_users(db)
-
-@users_router.post("/all/csv")
-async def gets_users(db: Session = Depends(get_db)):
-    users_list = get_users(db)
-    if not users_list:
+# Get all users
+@users_router.get("/", response_model=list[UserResponse])
+async def get_all_users(db: AsyncSession = Depends(get_db)):
+    users = await get_users(db)
+    if not users:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found")
+    return users
+
+# Get all users as CSV
+@users_router.get("/csv")
+async def get_all_users_csv(db: AsyncSession = Depends(get_db)):
+    users = await get_users(db)
+    if not users:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found")
+
+    # Create a CSV buffer
     csv_buffer = StringIO()
-    # Define the CSV column headers (assuming User model has `id`, `username`, and `email`)
-    fieldnames = ["id", "username", "email"]
-    # Create a CSV writer
+    fieldnames = ["id", "username", "email", "roles"]
     csv_writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
     
-    # Write the headers
+    # Write headers and rows
     csv_writer.writeheader()
-    # Write each user as a row in the CSV
-    for user in users_list:
+    for user in users:
+        roles = ", ".join([role.name for role in user.roles])
         csv_writer.writerow({
             "id": user.id,
             "username": user.username,
-            "email": user.email
+            "email": user.email,
+            "roles": roles
         })
-    # Get the CSV content from the buffer
+    
+    # Return the CSV content
     csv_content = csv_buffer.getvalue()
-    
-    # Close the buffer
     csv_buffer.close()
-    
-    # Return the CSV content as a response with the appropriate media type
     return Response(content=csv_content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=users.csv"})
 
-@users_router.post("/create")
-async def creates_user(user: UserCreateSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
-    return create_user(user,db)
+# Create a new user
+@users_router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_new_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    new_user = await create_user(user, db)
+    return new_user
 
-@users_router.put("/{user_id}/update/user")
-async def updates_user(user_id: int,user: UserCreateSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
-    return update_user(user_id,user,db)
+# Update a user
+@users_router.put("/{user_id}", response_model=UserResponse)
+async def update_existing_user(
+    user_id: int,
+    user: UserUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    updated_user = await update_user(user_id, user, db)
+    return updated_user
 
-@users_router.put("/{user_id}/update/email")
-async def updates_user_email(user_id: int,user: UserEmailSchema,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
-    return update_email(user_id,user,db)
+# Update a user's email
+@users_router.patch("/{user_id}/email", response_model=UserResponse)
+async def update_user_email(
+    user_id: int,
+    email_update: UserEmailUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    updated_user = await update_email(user_id, email_update, db)
+    return updated_user
 
+# Delete a user
+@users_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_existing_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    await delete_user(user_id, db)
+    return None
 
-
-@users_router.delete("/{user_id}")
-async def deletes_user(user_id: int,db: Session = Depends(get_db), status_code=status.HTTP_201_CREATED):
-    return delete_user(user_id,db)
-
-@users_router.post("/verify")
-async def verify_password(user: UserVerifySchema,db: Session = Depends(get_db), status_code=status.HTTP_202_ACCEPTED):
-    user_found = db.query(User).filter(User.username == user.username).first()
-    if user_found:        
-        is_valid = user_found.verify_password(user.password)
-        if is_valid:
-            return {"detail": "correct password"}
-        else: 
-            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="wrong password")
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+# Verify a user's password
+@users_router.post("/verify", response_model=dict)
+async def verify_user_password(
+    credentials: UserVerifyPassword,
+    db: AsyncSession = Depends(get_db)
+):
+    user = await get_user_by_username(credentials.username, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    if not user.verify_password(credentials.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
+    
+    return {"detail": "Password is correct"}

@@ -1,1 +1,1 @@
-SELECT * from articles;
+SELECT * from users;
